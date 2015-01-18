@@ -1,9 +1,14 @@
 package com.ladwa.aditya.chatapp;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -12,6 +17,25 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final TextView textView = (TextView) findViewById(R.id.mytextview);
+        final String URL = "http://10.0.2.2/www/Android/chat.php";
+
+        StringRequest request = new StringRequest(URL, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String s) {
+                textView.setText(s.toString());
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                textView.setText(volleyError.toString());
+            }
+        });
+
+        AppController.getInstance().addToRequestQueue(request);
+
+
     }
 
 
