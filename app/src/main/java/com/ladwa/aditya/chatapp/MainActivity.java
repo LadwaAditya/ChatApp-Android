@@ -8,7 +8,10 @@ import android.widget.TextView;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -21,10 +24,27 @@ public class MainActivity extends ActionBarActivity {
         final TextView textView = (TextView) findViewById(R.id.mytextview);
         final String URL = "http://10.0.2.2/www/Android/chat.php";
 
-        StringRequest request = new StringRequest(URL, new Response.Listener<String>() {
+       /* JsonArrayRequest request = new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(String s) {
-                textView.setText(s.toString());
+            public void onResponse(JSONArray jsonArray) {
+                textView.setText(jsonArray.toString());
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                textView.setText(volleyError.toString());
+            }
+        });*/
+
+        JSONObject object = new JSONObject();
+        JsonObjectRequest request = new JsonObjectRequest(URL, object, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    textView.setText(jsonObject.get("name").toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -34,8 +54,6 @@ public class MainActivity extends ActionBarActivity {
         });
 
         AppController.getInstance().addToRequestQueue(request);
-
-
     }
 
 
