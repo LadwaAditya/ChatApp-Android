@@ -5,7 +5,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
@@ -25,8 +24,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final TextView textView = (TextView) findViewById(R.id.mytextview);
-        final String URL = "http://10.0.2.2/www/Android/chat.php";
         final JSONObject obj = new JSONObject();
         try {
             obj.put("hello", "hello");
@@ -56,25 +53,7 @@ public class MainActivity extends ActionBarActivity {
 
         socket.connect();
 
-//        JSONObject object = new JSONObject();
-//        JsonObjectRequest request = new JsonObjectRequest(URL, object, new Response.Listener<JSONObject>() {
-//            @Override
-//            public void onResponse(JSONObject jsonObject) {
-//                try {
-//                    textView.setText(jsonObject.get("name").toString());
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError volleyError) {
-//                textView.setText(volleyError.toString());
-//            }
-//        });
-//
-//
-//        AppController.getInstance().addToRequestQueue(request);
+
     }
 
 
