@@ -34,7 +34,7 @@ public class NameActivity extends ActionBarActivity {
                     String name = txtName.getText().toString().trim();
 
                     Intent intent = new Intent(NameActivity.this, MainActivity.class);
-                    intent.putExtra("name", name);
+                    intent.putExtra(Config.TAG_NAME, name);
 
                     startActivity(intent);
 

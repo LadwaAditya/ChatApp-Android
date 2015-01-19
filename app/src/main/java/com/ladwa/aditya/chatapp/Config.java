@@ -9,4 +9,7 @@ public class Config {
     public final static String FILE_LOCATION = "/www/Android/chat.php";
 
     public final static String URL = HOST + IP + FILE_LOCATION;
+
+    public final static String TAG_NAME = "name";
+    public final static String TAG_OUTPUT = "output";
 }

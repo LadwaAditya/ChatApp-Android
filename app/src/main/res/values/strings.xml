@@ -10,6 +10,6 @@
     <string name="btn_join">JOIN</string>
 
     <string name="btn_send">Send</string>
-    <string name="title_activity_name">NameActivity</string>
+    <string name="title_activity_name">ChatApp</string>
 
 </resources>
