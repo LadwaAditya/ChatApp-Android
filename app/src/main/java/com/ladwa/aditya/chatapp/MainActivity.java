@@ -2,19 +2,23 @@ package com.ladwa.aditya.chatapp;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
+
 
 public class MainActivity extends ActionBarActivity {
+    Socket socket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,37 +27,54 @@ public class MainActivity extends ActionBarActivity {
 
         final TextView textView = (TextView) findViewById(R.id.mytextview);
         final String URL = "http://10.0.2.2/www/Android/chat.php";
+        final JSONObject obj = new JSONObject();
+        try {
+            obj.put("hello", "hello");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-       /* JsonArrayRequest request = new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray jsonArray) {
-                textView.setText(jsonArray.toString());
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                textView.setText(volleyError.toString());
-            }
-        });*/
 
-        JSONObject object = new JSONObject();
-        JsonObjectRequest request = new JsonObjectRequest(URL, object, new Response.Listener<JSONObject>() {
+        try {
+            socket = IO.socket("http://10.0.2.2:8080");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
-            public void onResponse(JSONObject jsonObject) {
-                try {
-                    textView.setText(jsonObject.get("name").toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+            public void call(Object... args) {
+                Log.d("Socket", "Connected......");
+                socket.emit("hello", "Hello World");
             }
-        }, new Response.ErrorListener() {
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                textView.setText(volleyError.toString());
+            public void call(Object... args) {
+                Log.d("Socket", "Disconnected");
             }
         });
 
-        AppController.getInstance().addToRequestQueue(request);
+        socket.connect();
+
+//        JSONObject object = new JSONObject();
+//        JsonObjectRequest request = new JsonObjectRequest(URL, object, new Response.Listener<JSONObject>() {
+//            @Override
+//            public void onResponse(JSONObject jsonObject) {
+//                try {
+//                    textView.setText(jsonObject.get("name").toString());
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError volleyError) {
+//                textView.setText(volleyError.toString());
+//            }
+//        });
+//
+//
+//        AppController.getInstance().addToRequestQueue(request);
     }
 
 
