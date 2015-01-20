@@ -2,9 +2,14 @@ package com.ladwa.aditya.chatapp;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -14,6 +19,7 @@ import com.github.nkzawa.socketio.client.Socket;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -25,6 +31,10 @@ public class MainActivity extends ActionBarActivity {
     List<Model> modelList = new ArrayList<>();
     CustomAdapter adapter;
     String username;
+    ListView mListView;
+    Button mSendButton;
+    EditText mInputMessage;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +42,59 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
 
-        username = getIntent().getStringExtra(Config.TAG_NAME).toString().trim();
+        username = getIntent().getStringExtra(Config.TAG_NAME).trim();
+
+        final JSONObject userObj = new JSONObject();
+        try {
+            userObj.put("name", username);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         Toast.makeText(this, username, Toast.LENGTH_SHORT).show();
-        ListView mListView = (ListView) findViewById(R.id.list_view_messages);
+
+        mListView = (ListView) findViewById(R.id.list_view_messages);
         adapter = new CustomAdapter(this, modelList);
         mListView.setAdapter(adapter);
+
+        mInputMessage = (EditText) findViewById(R.id.inputMsg);
+        mSendButton = (Button) findViewById(R.id.btnSend);
+
+        mInputMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                socket.emit(Config.TAG_TYPING, userObj);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
+        //Send Button Click Event
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String message = mInputMessage.getText().toString().trim();
+                if (message.length() < 0)
+                    Toast.makeText(getApplicationContext(), "Please Enter a Message", Toast.LENGTH_SHORT).show();
+                else
+                    sendMessage(message);
+            }
+        });
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         try {
             socket = IO.socket("http://10.0.2.2:8080");
@@ -44,48 +102,149 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("Socket", "Connected......");
+        //Listen For Connections
+        socket.on(Socket.EVENT_CONNECT, onConnect);
 
-                socket.emit("hello", "Hello World");
-            }
-        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("Socket", "Disconnected");
-            }
-        });
+        //Listen For Disconnection
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect);
 
-        socket.on(Config.TAG_OUTPUT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                JSONArray myArray = (JSONArray) args[0];
-                for (int i = 0, j = myArray.length(); i < j; i++) {
+        //Listen For message recieved
+        socket.on(Config.TAG_OUTPUT, onMessageRecieved);
+
+        //Listen for who is typing
+        socket.on(Config.TAG_ISTYPING, onIsTyping);
+
+        //Listen for status
+        socket.on(Config.TAG_STATUS, onStatusRecieve);
+
+
+        //Connect to socket
+        socket.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        socket.disconnect();
+
+        socket.off(Socket.EVENT_CONNECT, onConnect);
+
+        //Listen For Disconnection
+        socket.off(Socket.EVENT_DISCONNECT, onDisconnect);
+
+        //Listen For message recieved
+        socket.off(Config.TAG_OUTPUT, onMessageRecieved);
+
+        //Listen for who is typing
+        socket.off(Config.TAG_ISTYPING, onIsTyping);
+
+        //Listen for status
+        socket.off(Config.TAG_STATUS, onStatusRecieve);
+    }
+
+    private Emitter.Listener onStatusRecieve = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject obj = (JSONObject) args[0];
                     try {
-                        String name = myArray.getJSONObject(i).getString("name");
-                        String messages = myArray.getJSONObject(i).getString("message");
-                        Model model;
-                        if (username.equals(name.trim()))
-                            model = new Model(name, messages, true);
-                        else
-                            model = new Model(name, messages, false);
-
-                        modelList.add(model);
-
-                        adapter.notifyDataSetChanged();
+                        String mes = obj.getString("message");
+                        Boolean clear = obj.getBoolean("clear");
+                        if (clear) {
+                            mInputMessage.setText("");
+                            Toast.makeText(getApplicationContext(), mes, Toast.LENGTH_SHORT);
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }
-            }
-        });
 
-        socket.connect();
+
+                }
+            });
+        }
+    };
+
+    private void sendMessage(String message) {
+        JSONObject obj = new JSONObject();
+
+        try {
+            obj.put("name", username);
+            obj.put("message", message);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        socket.emit(Config.TAG_INPUT, obj);
 
 
     }
+
+
+    private Emitter.Listener onIsTyping = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    final String name = args[0].toString();
+                    if (!name.equals(username))
+                        Toast.makeText(getApplicationContext(), name + " is Typing", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onDisconnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.d("Socket", "Disconnected");
+        }
+    };
+
+    private Emitter.Listener onConnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.d("Socket", "Connected......");
+
+            socket.emit("hello", "Hello World");
+        }
+    };
+
+    private Emitter.Listener onMessageRecieved = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONArray myArray = (JSONArray) args[0];
+                    if (myArray.length() > 0) {
+                        for (int i = 0, j = myArray.length(); i < j; i++) {
+                            try {
+                                String name = myArray.getJSONObject(i).getString("name");
+                                String messages = myArray.getJSONObject(i).getString("message");
+                                Model model;
+                                if (!name.equals(username))
+                                    model = new Model(name, messages, false);
+                                else
+                                    model = new Model(name, messages, true);
+
+
+                                modelList.add(model);
+                                adapter.notifyDataSetChanged();
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                }
+            });
+        }
+    };
 
 
     @Override

@@ -51,14 +51,13 @@ public class CustomAdapter extends BaseAdapter {
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         Model m = mModel.get(position);
-        if (convertView == null) {
 
 
-            if (m.isRight() == true)
-                convertView = inflater.inflate(R.layout.list_item_message_right, null);
-            else
-                convertView = inflater.inflate(R.layout.list_item_message_left, null);
-        }
+        if (m.isRight() == true)
+            convertView = inflater.inflate(R.layout.list_item_message_right, null);
+        else
+            convertView = inflater.inflate(R.layout.list_item_message_left, null);
+
 
         TextView name = (TextView) convertView.findViewById(R.id.lblMsgFrom);
         TextView message = (TextView) convertView.findViewById(R.id.txtMsg);
