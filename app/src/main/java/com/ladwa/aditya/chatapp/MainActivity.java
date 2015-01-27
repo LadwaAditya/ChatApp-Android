@@ -154,7 +154,7 @@ public class MainActivity extends ActionBarActivity {
                         Boolean clear = obj.getBoolean("clear");
                         if (clear) {
                             mInputMessage.setText("");
-                            Toast.makeText(getApplicationContext(), mes, Toast.LENGTH_SHORT);
+                            Toast.makeText(getApplicationContext(), mes, Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
