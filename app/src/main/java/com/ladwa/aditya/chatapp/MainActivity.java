@@ -1,16 +1,21 @@
 package com.ladwa.aditya.chatapp;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
@@ -32,8 +37,9 @@ public class MainActivity extends ActionBarActivity {
     CustomAdapter adapter;
     String username;
     ListView mListView;
-    Button mSendButton;
+    ImageButton mSendButton;
     EditText mInputMessage;
+    TextView online, whoistyping;
 
 
     @Override
@@ -41,8 +47,23 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ActionBar actionBar = getSupportActionBar();
+
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
+
+
+        LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.layout_actionbar, null);
+
+        actionBar.setCustomView(v);
+
+        online = (TextView) v.findViewById(R.id.totalonline);
+        whoistyping = (TextView) v.findViewById(R.id.typing);
+
 
         username = getIntent().getStringExtra(Config.TAG_NAME).trim();
+
 
         final JSONObject userObj = new JSONObject();
         try {
@@ -57,7 +78,7 @@ public class MainActivity extends ActionBarActivity {
         mListView.setAdapter(adapter);
 
         mInputMessage = (EditText) findViewById(R.id.inputMsg);
-        mSendButton = (Button) findViewById(R.id.btnSend);
+        mSendButton = (ImageButton) findViewById(R.id.btnSend);
 
         mInputMessage.addTextChangedListener(new TextWatcher() {
             @Override
@@ -82,7 +103,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 final String message = mInputMessage.getText().toString().trim();
-                if (message.length() < 0)
+                if (message.length() <= 0)
                     Toast.makeText(getApplicationContext(), "Please Enter a Message", Toast.LENGTH_SHORT).show();
                 else
                     sendMessage(message);
@@ -118,6 +139,9 @@ public class MainActivity extends ActionBarActivity {
         socket.on(Config.TAG_STATUS, onStatusRecieve);
 
 
+        socket.on(Config.TAG_ONLINE, onTotalOnline);
+
+
         //Connect to socket
         socket.connect();
     }
@@ -142,6 +166,22 @@ public class MainActivity extends ActionBarActivity {
         socket.off(Config.TAG_STATUS, onStatusRecieve);
     }
 
+    private Emitter.Listener onTotalOnline = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String totalonline = args[0].toString();
+
+                    online.setText(totalonline + " are Online");
+
+                }
+            });
+
+        }
+    };
+
     private Emitter.Listener onStatusRecieve = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -149,6 +189,7 @@ public class MainActivity extends ActionBarActivity {
                 @Override
                 public void run() {
                     JSONObject obj = (JSONObject) args[0];
+                    Log.d("Status", obj.toString());
                     try {
                         String mes = obj.getString("message");
                         Boolean clear = obj.getBoolean("clear");
@@ -191,7 +232,17 @@ public class MainActivity extends ActionBarActivity {
 
                     final String name = args[0].toString();
                     if (!name.equals(username))
-                        Toast.makeText(getApplicationContext(), name + " is Typing", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), name + " is Typing", Toast.LENGTH_SHORT).show();
+                        whoistyping.setText(name + " is Typing...");
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            whoistyping.setText("Ideal");
+                        }
+                    }, 1000);
+
+
                 }
             });
         }

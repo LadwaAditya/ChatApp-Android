@@ -16,4 +16,5 @@ public class Config {
     public final static String TAG_ISTYPING = "istyping";
     public final static String TAG_INPUT = "input";
     public final static String TAG_STATUS = "status";
+    public final static String TAG_ONLINE = "online";
 }
