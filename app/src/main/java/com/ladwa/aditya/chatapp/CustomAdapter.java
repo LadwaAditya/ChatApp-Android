@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -61,6 +64,10 @@ public class CustomAdapter extends BaseAdapter {
 
         TextView name = (TextView) convertView.findViewById(R.id.lblMsgFrom);
         TextView message = (TextView) convertView.findViewById(R.id.txtMsg);
+
+
+
+
 
 
         name.setText(m.getName());
