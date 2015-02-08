@@ -20,6 +20,8 @@ public class NameActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_name);
+
+
         getSupportActionBar().hide();
         btnJoin = (Button) findViewById(R.id.btnJoin);
         txtName = (EditText) findViewById(R.id.name);
