@@ -13,11 +13,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "chat.db";
 
 
-    public static final String QUERY_CREATE_TABLE = "CREATE TABLE " + ChatDatabaseContract.TableEntry.TABLE_NAME +
+    public static final String
+            QUERY_CREATE_TABLE = "CREATE TABLE " + ChatDatabaseContract.TableEntry.TABLE_NAME +
             " (" + ChatDatabaseContract.TableEntry.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             ChatDatabaseContract.TableEntry.COLUMN_NAME + " TEXT NOT NULL, " +
             ChatDatabaseContract.TableEntry.COLUMN_MSG + " TEXT NOT NULL, " +
-            ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP + "TEXT NOT NULL)";
+            ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP + " TEXT NOT NULL)";
 
 
     public DatabaseHelper(Context context) {
