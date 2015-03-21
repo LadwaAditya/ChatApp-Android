@@ -2,6 +2,7 @@ package com.ladwa.aditya.chatapp;
 
 import android.app.Application;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.ApplicationTestCase;
 import android.util.Log;
@@ -25,18 +26,17 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
     }
 
     public void testInsertDb() {
-        String name = "Aditya";
-        String msg = "hey";
-        String time = "7:56 AM";
+        String testName = "Aditya";
+        String testMsg = "hey";
+        String testTime = "7:56 AM";
 
-        DatabaseHelper helper = new DatabaseHelper(mContext);
-        SQLiteDatabase db = helper.getWritableDatabase();
+        SQLiteDatabase db = new DatabaseHelper(mContext).getWritableDatabase();
 
 
         ContentValues values = new ContentValues();
-        values.put(ChatDatabaseContract.TableEntry.COLUMN_NAME, name);
-        values.put(ChatDatabaseContract.TableEntry.COLUMN_MSG, msg);
-        values.put(ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP, time);
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_NAME, testName);
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_MSG, testMsg);
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP, testTime);
 
         long locationId;
 
@@ -45,5 +45,38 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
         assertTrue(locationId != -1);
         Log.d("DATABASE ", "new row inserted at" + locationId);
+
+
+        String[] columns = {
+                ChatDatabaseContract.TableEntry.COLUMN_ID,
+                ChatDatabaseContract.TableEntry.COLUMN_NAME,
+                ChatDatabaseContract.TableEntry.COLUMN_MSG,
+                ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP};
+
+        Cursor cursor = db.query(
+                ChatDatabaseContract.TableEntry.TABLE_NAME,
+                columns,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        if (cursor.moveToFirst()) {
+
+
+            String name = cursor.getString(cursor.getColumnIndex(ChatDatabaseContract.TableEntry.COLUMN_NAME));
+            String msg = cursor.getString(cursor.getColumnIndex(ChatDatabaseContract.TableEntry.COLUMN_MSG));
+            String time = cursor.getString(cursor.getColumnIndex(ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP));
+
+            assertEquals(testMsg, msg);
+            assertEquals(testName, name);
+            assertEquals(testTime, time);
+
+        }else{
+            fail("No values Returned");
+        }
     }
+
+
 }

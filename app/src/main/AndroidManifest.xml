@@ -30,6 +30,11 @@
 
 
         <activity android:name=".MainActivity" />
+
+        <provider
+            android:authorities="com.ladwa.aditya.chatapp"
+            android:name="data.ChatProvider"></provider>
+
     </application>
 
 </manifest>
