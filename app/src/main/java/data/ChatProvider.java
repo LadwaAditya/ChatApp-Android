@@ -13,8 +13,10 @@ public class ChatProvider extends ContentProvider {
 
 
     private DatabaseHelper mDatabaseHelper;
-    public static final int MESSAGE = 100;
-    public static final int NAME = 101;
+
+    public static final int ALL = 100;
+    public static final int MESSAGE_WITH_ID = 101;
+    public static final int MESSAGE_WITH_NAME = 102;
     public static final UriMatcher sUriMatcher = buildUriMatcher();
 
 
@@ -22,8 +24,9 @@ public class ChatProvider extends ContentProvider {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = ChatDatabaseContract.CONTENT_AUTHORITY;
 
-        matcher.addURI(authority, ChatDatabaseContract.PATH_CHAT, MESSAGE);
-        matcher.addURI(authority, ChatDatabaseContract.PATH_CHAT + "/*", NAME);
+        matcher.addURI(authority, ChatDatabaseContract.PATH_CHAT, ALL);
+        matcher.addURI(authority, ChatDatabaseContract.PATH_CHAT + "/#", MESSAGE_WITH_ID);
+        matcher.addURI(authority, ChatDatabaseContract.PATH_CHAT + "/*", MESSAGE_WITH_NAME);
         return matcher;
     }
 
@@ -41,7 +44,19 @@ public class ChatProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match){
+            case ALL:
+                return ChatDatabaseContract.TableEntry.CONTENT_ITEM_TYPE;
+            case MESSAGE_WITH_ID:
+                return ChatDatabaseContract.TableEntry.CONTENT_ITEM_TYPE;
+            case MESSAGE_WITH_NAME:
+                return ChatDatabaseContract.TableEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: "+ uri);
+        }
+
+
     }
 
     @Override

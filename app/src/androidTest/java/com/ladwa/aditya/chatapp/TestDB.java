@@ -13,8 +13,8 @@ import data.DatabaseHelper;
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
  */
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
+public class TestDB extends ApplicationTestCase<Application> {
+    public TestDB() {
         super(Application.class);
     }
 
@@ -73,7 +73,7 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
             assertEquals(testName, name);
             assertEquals(testTime, time);
 
-        }else{
+        } else {
             fail("No values Returned");
         }
     }
