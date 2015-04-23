@@ -237,7 +237,7 @@ public class MainActivity extends ActionBarActivity {
                         public void run() {
                             whoistyping.setText("Ideal");
                         }
-                    }, 1000);
+                    }, 2500);
 
 
                 }
