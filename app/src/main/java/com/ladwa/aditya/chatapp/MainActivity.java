@@ -1,5 +1,8 @@
 package com.ladwa.aditya.chatapp;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
@@ -20,13 +23,15 @@ import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import data.ChatDatabaseContract;
+import data.DatabaseHelper;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -94,6 +99,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        getChatFromDatabase();
 
         //Send Button Click Event
         mSendButton.setOnClickListener(new View.OnClickListener() {
@@ -104,6 +110,7 @@ public class MainActivity extends ActionBarActivity {
                     Toast.makeText(getApplicationContext(), "Please Enter a Message", Toast.LENGTH_SHORT).show();
                 else
                     sendMessage(message);
+                    mInputMessage.setText("");
             }
         });
 
@@ -214,6 +221,8 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
+        addToDatabase(message.toString());
+
         socket.emit(Config.TAG_INPUT, obj);
 
 
@@ -267,32 +276,91 @@ public class MainActivity extends ActionBarActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    JSONArray myArray = (JSONArray) args[0];
-                    if (myArray.length() > 0) {
-                        for (int i = 0, j = myArray.length(); i < j; i++) {
-                            try {
-                                String name = myArray.getJSONObject(i).getString("name");
-                                String messages = myArray.getJSONObject(i).getString("message");
-                                Model model;
-                                if (!name.equals(username))
-                                    model = new Model(name, messages, false);
-                                else
-                                    model = new Model(name, messages, true);
+                    JSONObject object = (JSONObject) args[0];
+
+                    try {
+                        String name = object.getString("name");
+                        String messages = object.getString("message");
+                        Model model;
+                        if (!name.equals(username))
+                            model = new Model(name, messages, false);
+                        else
+                            model = new Model(name, messages, true);
 
 
-                                modelList.add(model);
-                                adapter.notifyDataSetChanged();
+                        modelList.add(model);
+                        adapter.notifyDataSetChanged();
 
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        addToDatabase(messages);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
 
                 }
             });
         }
     };
+
+    public void addToDatabase(String message) {
+
+        SQLiteDatabase db = new DatabaseHelper(this).getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_NAME, username);
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_MSG, message);
+        values.put(ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP, "10:35");
+
+
+        db.insert(ChatDatabaseContract.TableEntry.TABLE_NAME, null, values);
+    }
+
+
+    public void getChatFromDatabase() {
+        String[] columns = {
+                ChatDatabaseContract.TableEntry.COLUMN_ID,
+                ChatDatabaseContract.TableEntry.COLUMN_NAME,
+                ChatDatabaseContract.TableEntry.COLUMN_MSG,
+                ChatDatabaseContract.TableEntry.COLUMN_TIME_STAMP};
+        SQLiteDatabase db = new DatabaseHelper(this).getWritableDatabase();
+
+        Cursor cursor = db.query(
+                ChatDatabaseContract.TableEntry.TABLE_NAME,
+                columns,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        cursor.moveToFirst();
+        while(cursor.isAfterLast() == false) {
+
+
+            String name = cursor.getString(cursor.getColumnIndex(ChatDatabaseContract.TableEntry.COLUMN_NAME));
+            String msg = cursor.getString(cursor.getColumnIndex(ChatDatabaseContract.TableEntry.COLUMN_MSG));
+            Model model;
+            if (!name.equals(username))
+                model = new Model(name, msg, false);
+            else
+                model = new Model(name, msg, true);
+            modelList.add(model);
+            adapter.notifyDataSetChanged();
+            cursor.moveToNext();
+        }
+    }
+
+    public void clearChat(){
+        SQLiteDatabase db = new DatabaseHelper(this).getWritableDatabase();
+
+        db.execSQL("DELETE FROM " + ChatDatabaseContract.TableEntry.TABLE_NAME);
+        db.close();
+
+//        for(int i = 0,j = modelList.size() -1; i < j ; i++){
+//            modelList.remove(i);
+//            adapter.notifyDataSetChanged();
+//        }
+    }
 
 
     @Override
@@ -312,6 +380,8 @@ public class MainActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if(id == R.id.action_clear_chat){
+            clearChat();
         }
 
         return super.onOptionsItemSelected(item);
